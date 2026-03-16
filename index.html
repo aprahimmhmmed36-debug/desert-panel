@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desert Roleplay — Server Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:    #050d14;
+      --bg-panel:   #071520;
+      --bg-card:    #091e2e;
+      --bg-row:     #0b2236;
+      --border:     #0e3550;
+      --border-hi:  #1a5a82;
+      --accent:     #00c8e0;
+      --accent-dim: #00889a;
+      --green:      #00e57a;
+      --text-hi:    #d6eaf8;
+      --text-mid:   #7aadcc;
+      --text-lo:    #3a6a88;
+      --ping-good:  #00e57a;
+    }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg-deep);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,224,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,224,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .panel {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 960px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(0,200,224,.07),
+        0 8px 60px rgba(0,0,0,.7),
+        inset 0 1px 0 rgba(0,200,224,.12);
+      animation: fadeIn .5s ease both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.1rem 1.4rem;
+      background: linear-gradient(135deg, #071e30 0%, #091828 100%);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .logo-wrap {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0e3a58, #0a2538);
+      border: 2px solid var(--accent-dim);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 18px rgba(0,200,224,.3);
+      flex-shrink: 0;
+    }
+    .logo-wrap svg { width: 24px; height: 24px; fill: var(--accent); }
+
+    .server-info { flex: 1; min-width: 0; }
+    .server-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.55rem; font-weight: 700;
+      color: var(--text-hi); letter-spacing: .08em;
+      text-transform: uppercase; line-height: 1;
+    }
+    .server-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .65rem; color: var(--accent-dim);
+      letter-spacing: .25em; margin-top: 3px;
+    }
+
+    .search-wrap { position: relative; flex: 1; max-width: 240px; }
+    .search-wrap input {
+      width: 100%;
+      background: rgba(0,200,224,.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .45rem .75rem .45rem 2.1rem;
+      color: var(--text-mid);
+      font-family: 'Exo 2', sans-serif;
+      font-size: .78rem; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .search-wrap input::placeholder { color: var(--text-lo); }
+    .search-wrap input:focus {
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 3px rgba(0,200,224,.1);
+    }
+    .search-icon {
+      position: absolute; left: .6rem; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px;
+      stroke: var(--text-lo); fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .stat-badge {
+      display: flex; flex-direction: column; align-items: center;
+      background: rgba(0,200,224,.06);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px; padding: .35rem .9rem; min-width: 60px;
+    }
+    .stat-badge .val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.3rem; font-weight: 700; color: var(--accent); line-height: 1;
+    }
+    .stat-badge .lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .55rem; color: var(--text-lo); letter-spacing: .15em; margin-top: 2px;
+    }
+
+    .live-pill {
+      display: flex; align-items: center; gap: .45rem;
+      background: rgba(0,229,122,.08);
+      border: 1px solid rgba(0,229,122,.3);
+      border-radius: 20px; padding: .35rem .9rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem; font-weight: 600; color: var(--green); letter-spacing: .1em;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px var(--green);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .5; transform: scale(.7); }
+    }
+
+    /* TABLE */
+    .table-wrap { padding: .8rem 1.4rem 1rem; }
+
+    .col-headers {
+      display: grid;
+      grid-template-columns: 40px 170px 110px 170px 90px 90px 70px;
+      gap: .5rem; padding: .4rem .6rem; margin-bottom: .3rem;
+    }
+    .col-headers span {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .6rem; color: var(--text-lo);
+      letter-spacing: .2em; text-transform: uppercase;
+    }
+
+    .player-row {
+      display: grid;
+      grid-template-columns: 40px 170px 110px 170px 90px 90px 70px;
+      gap: .5rem; align-items: center;
+      background: var(--bg-row);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: .6rem;
+      margin-bottom: .5rem;
+      transition: border-color .2s, box-shadow .2s;
+      animation: rowIn .4s ease both;
+    }
+    .player-row:hover {
+      border-color: var(--border-hi);
+      box-shadow: 0 0 18px rgba(0,200,224,.08);
+    }
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .cell-id {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .82rem; color: var(--text-lo); text-align: center;
+    }
+    .cell-player { display: flex; align-items: center; gap: .6rem; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: linear-gradient(135deg, #0e3a58, #0a2232);
+      border: 1px solid var(--border-hi);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .avatar svg { width: 18px; height: 18px; fill: var(--text-mid); }
+    .player-name { font-size: .9rem; font-weight: 600; color: var(--text-hi); }
+    .cell-rank { font-size: .8rem; color: var(--text-mid); }
+
+    .faction-tag {
+      display: inline-flex; align-items: center;
+      background: rgba(0,200,224,.05);
+      border: 1px solid rgba(0,200,224,.15);
+      border-radius: 5px; padding: .22rem .6rem;
+      font-size: .72rem; color: var(--text-mid);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 165px;
+    }
+
+    /* HP / ARMOR bars */
+    .bar-cell { display: flex; flex-direction: column; gap: 3px; }
+    .bar-top {
+      display: flex; justify-content: space-between;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .55rem; color: var(--text-lo);
+    }
+    .bar-top span:last-child { font-weight: 600; }
+    .bar-track {
+      width: 100%; height: 5px;
+      background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+    .bar-fill.hp-high { background: linear-gradient(90deg,#00cc66,#00ff88); }
+    .bar-fill.hp-mid  { background: linear-gradient(90deg,#f0a020,#ffd060); }
+    .bar-fill.hp-low  { background: linear-gradient(90deg,#ff4060,#ff8090); }
+    .bar-fill.armor   { background: linear-gradient(90deg,#4090ff,#80b8ff); }
+
+    .cell-hours {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .8rem; color: var(--text-mid); text-align: center;
+    }
+
+    .ping-wrap { display: flex; align-items: center; gap: .4rem; }
+    .ping-val {
+      background: rgba(0,229,122,.12);
+      border: 1px solid rgba(0,229,122,.25);
+      border-radius: 4px; padding: .18rem .45rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; min-width: 30px; text-align: center;
+    }
+    .ping-bars { display: flex; gap: 2px; align-items: flex-end; }
+    .ping-bars span {
+      width: 4px; border-radius: 2px; opacity: .25;
+    }
+    .ping-bars span:nth-child(1) { height: 5px; }
+    .ping-bars span:nth-child(2) { height: 9px; }
+    .ping-bars span:nth-child(3) { height: 13px; }
+    .ping-bars span.active { opacity: 1; }
+
+    /* empty / shimmer */
+    .empty-msg {
+      text-align: center; padding: 2rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .75rem; color: var(--text-lo);
+      letter-spacing: .15em; display: none;
+    }
+    .shimmer-row {
+      height: 50px; border-radius: 8px; margin-bottom: .5rem;
+      background: linear-gradient(90deg, var(--bg-row) 25%, #0d2840 50%, var(--bg-row) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* BOTTOM BAR */
+    .bottombar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .65rem 1.4rem;
+      background: rgba(5,13,20,.6);
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap; gap: .5rem;
+    }
+    .status-left {
+      display: flex; align-items: center; gap: .5rem;
+      font-family: 'Share Tech Mono', monospace; font-size: .7rem;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px var(--green);
+    }
+    .status-text { color: var(--green); font-weight: 600; letter-spacing: .1em; }
+    .status-time { color: var(--text-lo); margin-left: .2rem; }
+    .status-right { display: flex; align-items: center; gap: 1rem; }
+    .server-addr {
+      font-family: 'Share Tech Mono', monospace; font-size: .68rem;
+      color: var(--text-lo);
+      background: rgba(0,200,224,.04); border: 1px solid var(--border);
+      border-radius: 5px; padding: .22rem .6rem;
+    }
+    .players-count {
+      font-family: 'Rajdhani', sans-serif; font-size: .95rem;
+      font-weight: 700; color: var(--text-mid); letter-spacing: .08em;
+    }
+    .players-count strong { color: var(--accent); }
+
+    /* spinner */
+    .spin {
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 1.5px solid var(--text-lo); border-top-color: var(--accent);
+      animation: spin .7s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="panel">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo-wrap">
+      <svg viewBox="0 0 24 24"><path d="M4 4h7c5 0 9 3.6 9 8s-4 8-9 8H4V4zm4 3v10h3c3.3 0 5-2.2 5-5s-1.7-5-5-5H8z"/></svg>
+    </div>
+    <div class="server-info">
+      <div class="server-name">Desert Roleplay</div>
+      <div class="server-sub">D E S E R T &nbsp; W O R L D &nbsp; V 5</div>
+    </div>
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+      <input id="searchInput" type="text" placeholder="Search player..." />
+    </div>
+    <div class="stat-badge">
+      <span class="val" id="onlineCount">0</span>
+      <span class="lbl">ONLINE</span>
+    </div>
+    <div class="stat-badge">
+      <span class="val">128</span>
+      <span class="lbl">MAX</span>
+    </div>
+    <div class="live-pill">
+      <span class="live-dot"></span> LIVE
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="col-headers">
+      <span>ID</span>
+      <span>PLAYER</span>
+      <span>RANK</span>
+      <span>FACTION</span>
+      <span>HEALTH</span>
+      <span>ARMOR</span>
+      <span style="text-align:center">PING</span>
+    </div>
+
+    <div id="shimmerWrap">
+      <div class="shimmer-row"></div>
+      <div class="shimmer-row" style="opacity:.65"></div>
+      <div class="shimmer-row" style="opacity:.35"></div>
+    </div>
+
+    <div id="rowsWrap"></div>
+    <div class="empty-msg" id="emptyMsg">— NO PLAYERS ONLINE —</div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottombar">
+    <div class="status-left">
+      <span class="status-dot"></span>
+      <span class="status-text">SERVER ONLINE</span>
+      <span class="status-time" id="lastUpdate">Connecting…</span>
+    </div>
+    <div class="status-right">
+      <div class="spin" id="spinner"></div>
+      <span class="server-addr">mtasa://51.38.205.167:23055</span>
+      <span class="players-count"><strong id="bottomCount">0</strong> PLAYERS</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ══════════════════════════════════════════
+  //  CONFIG
+  // ══════════════════════════════════════════
+  const BIN_ID    = "69b87f99c3097a1dd52f62fb";
+  const API_KEY   = "$2a$10$tur2zKCV/rfThfUAhRzRyO5zZUOQBfafI/h5TPhP/QKdG5EHMSG1S";
+  const API_URL   = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+  const REFRESH   = 5000; // كل 5 ثوانٍ
+  // ══════════════════════════════════════════
+
+  let allPlayers  = [];
+  let searchQuery = "";
+
+  const rowsWrap    = document.getElementById("rowsWrap");
+  const shimmerWrap = document.getElementById("shimmerWrap");
+  const emptyMsg    = document.getElementById("emptyMsg");
+  const spinner     = document.getElementById("spinner");
+  const onlineCount = document.getElementById("onlineCount");
+  const bottomCount = document.getElementById("bottomCount");
+  const lastUpdate  = document.getElementById("lastUpdate");
+  const searchInput = document.getElementById("searchInput");
+
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value.toLowerCase();
+    renderRows();
+  });
+
+  function hpClass(hp) {
+    if (hp > 60) return "hp-high";
+    if (hp > 30) return "hp-mid";
+    return "hp-low";
+  }
+
+  function pingColor(ping) {
+    if (ping < 80)  return { color: "#00e57a", bars: 3 };
+    if (ping < 150) return { color: "#f0c040", bars: 2 };
+    return { color: "#ff4060", bars: 1 };
+  }
+
+  function buildRow(p, idx) {
+    const hp   = Math.min(Math.max(p.health ?? 100, 0), 100);
+    const arm  = Math.min(Math.max(p.armor  ?? 0,   0), 100);
+    const ping = p.ping ?? 0;
+    const { color: pc, bars } = pingColor(ping);
+
+    const pingBars = [1,2,3].map(n =>
+      `<span class="${n <= bars ? 'active' : ''}" style="background:${pc}"></span>`
+    ).join("");
+
+    return `
+    <div class="player-row" data-name="${(p.name||"").toLowerCase()}">
+      <div class="cell-id">${p.id ?? idx+1}</div>
+      <div class="cell-player">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <span class="player-name">${p.name ?? "Unknown"}</span>
+      </div>
+      <div class="cell-rank">${p.rank ?? "Player"}</div>
+      <div><span class="faction-tag">${p.faction ?? "None"}</span></div>
+
+      <div class="bar-cell">
+        <div class="bar-top"><span>HP</span><span style="color:#ff8090">${hp}%</span></div>
+        <div class="bar-track"><div class="bar-fill ${hpClass(hp)}" style="width:${hp}%"></div></div>
+      </div>
+
+      <div class="bar-cell">
+        <div class="bar-top"><span>ARM</span><span style="color:#80b8ff">${arm}%</span></div>
+        <div class="bar-track"><div class="bar-fill armor" style="width:${arm}%"></div></div>
+      </div>
+
+      <div class="ping-wrap">
+        <span class="ping-val" style="color:${pc};border-color:${pc}55">${ping}</span>
+        <div class="ping-bars">${pingBars}</div>
+      </div>
+    </div>`;
+  }
+
+  function renderRows() {
+    rowsWrap.innerHTML = "";
+    const filtered = allPlayers.filter(p =>
+      (p.name || "").toLowerCase().includes(searchQuery)
+    );
+
+    if (filtered.length === 0) {
+      emptyMsg.style.display = "block";
+    } else {
+      emptyMsg.style.display = "none";
+      filtered.forEach((p, i) => {
+        rowsWrap.insertAdjacentHTML("beforeend", buildRow(p, i));
+      });
+    }
+
+    onlineCount.textContent = allPlayers.length;
+    bottomCount.textContent = allPlayers.length;
+  }
+
+  async function fetchPlayers() {
+    spinner.style.display = "block";
+    try {
+      const res  = await fetch(API_URL + "?t=" + Date.now(), {
+        headers: { "X-Master-Key": API_KEY }
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const json = await res.json();
+      allPlayers = Array.isArray(json.record) ? json.record : [];
+
+      shimmerWrap.style.display = "none";
+      renderRows();
+
+      const now = new Date();
+      lastUpdate.textContent = "Updated " + now.toLocaleTimeString();
+    } catch(e) {
+      console.warn("[Panel]", e);
+      lastUpdate.textContent = "Connection error";
+      if (shimmerWrap.style.display === "none") {
+        emptyMsg.style.display = "block";
+      }
+    } finally {
+      spinner.style.display = "none";
+    }
+  }
+
+  fetchPlayers();
+  setInterval(fetchPlayers, REFRESH);
+</script>
+</body>
+</html>
